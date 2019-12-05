@@ -1,0 +1,12 @@
+#!/usr/bin/with-contenv bash
+
+if [ ! -f /app/config/qBittorrent.conf ]; then
+	cp /defaults/qBittorrent.conf /app/config/qBittorrent.conf
+    chown qbittorrent:qbittorrent /app/config/qBittorrent.conf
+fi
+
+if [ ! -L /root/.config/qBittorrent/qBittorrent.conf ]; then
+    ln /app/config/qBittorrent.conf /root/.config/qBittorrent
+fi
+
+exec s6-setuidgid qbittorrent /usr/bin/qbittorrent-nox
