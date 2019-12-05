@@ -1,0 +1,5 @@
+{
+  "Port": 9117,
+  "AllowExternal": true,
+  "BlackholeDir": "/app/autoload"
+}

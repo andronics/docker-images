@@ -1,0 +1,2 @@
+/app true jackett:jackett 0750 0750
+/opt/jackett true root 0755 0755

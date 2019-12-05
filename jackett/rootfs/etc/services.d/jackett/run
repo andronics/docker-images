@@ -1,0 +1,7 @@
+#!/usr/bin/with-contenv bash
+
+if [ ! -f /app/config/ServerConfig.json ]; then
+	cp /defaults/ServerConfig.json /app/config/Jackett/ServerConfig.json
+fi
+
+exec s6-setuidgid jackett mono /opt/jackett/JackettConsole.exe --NoUpdates "${RUN_OPTS}"
