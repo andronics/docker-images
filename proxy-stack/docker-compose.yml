@@ -1,0 +1,19 @@
+version: '3.2'
+services:
+  tor:
+    image: andronics/tor
+    restart: always
+    labels:
+      me.andronics.description: "Tor SOCKS Server"
+      me.andronics.department: "Network"
+      me.andronics.organisatin: "Andronics"
+      me.andronics.urn: "me.andronics.services.proxy.socks"
+      me.andronics.service: "SOCKS"
+  haproxy:
+    image: haproxy:alpine
+    restart: always
+    ports:
+      - 8100:8100
+      - 9050:9050
+    volumes:
+      - ./proxy/config:/usr/local/etc/haproxy

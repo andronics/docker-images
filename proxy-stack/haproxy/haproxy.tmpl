@@ -1,0 +1,49 @@
+{{ $CurrentContainer := where $ "ID" .Docker.CurrentContainerID | first }}
+
+global
+    maxconn 4096
+    ulimit-n 65536
+    quiet
+    daemon
+    nbproc 2
+
+defaults
+    retries 3
+    redispatch
+    maxconn 2000
+    contimeout 5000
+    clitimeout 5000
+    srvtimeout 5000
+
+{{ $services := groupByLabel $ "me.andronics.service" }}
+
+{{ range $srv, $containers := $services }}
+
+{{ if eq $srv "privoxy" }}
+listen privoxy
+    mode tcp
+    balance roundrobin
+    bind :443,:8100
+
+    {{ range $container := $containers }}
+    {{ range $address := $container.Networks }}
+    server {{ $container.Hostname }} {{ $address.IP }}:9050
+    {{ end }}
+    {{ end }}
+{{ end }}
+
+{{ if eq $srv "SOCKS" }}
+listen socks
+    mode tcp
+    balance roundrobin
+    bind :9050
+    
+    {{ range $container := $containers }}
+    {{ range $address := $container.Networks }}
+    server {{ $container.Hostname }} {{ $address.IP }}:9050
+    {{ end }}
+    {{ end }}
+
+{{ end }}
+
+{{ end }}
