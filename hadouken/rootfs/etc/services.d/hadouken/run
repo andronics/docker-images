@@ -1,0 +1,11 @@
+#!/usr/bin/with-contenv bash
+
+# default config
+if [ ! -f /app/config/hadouken.json ]; then
+	cp /defaults/hadouken.json /app/config/hadouken.json
+    chown hadouken:hadouken /app/config/hadouken.json
+fi
+
+[ -e /var/run/hadouken.pid ] && rm -rf /var/run/hadouken.pid
+
+/opt/hadouken/hadouken --config /app/config/hadouken.json
