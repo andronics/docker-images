@@ -1,0 +1,14 @@
+#!/usr/bin/with-contenv bash
+
+# make folders
+mkdir -p /srv/autoload /srv/config /srv/complete /srv/incomplete /srv/loaded
+
+if [ ! -f /srv/config/sabnzbd.ini ]
+then
+	cp /defaults/sabnzbd.ini /srv/config/sabnzbd.ini
+fi
+
+
+# permissions
+chown abc:abc /srv/autoload /srv/config /srv/complete /srv/incomplete /srv/loaded
+
