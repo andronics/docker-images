@@ -1,0 +1,14 @@
+#!/usr/bin/with-contenv sh
+
+if [ ! -d '/etc/crond.d' ]; then
+    mkdir "/etc/cron.d"
+fi
+
+if [ ! -d "/var/log" ]; then
+    mkdir "/var/log"
+fi
+
+if [ -n "$MYSQL_BACKUP_SCHEDULE" ]; then
+    echo "Creating MySQL Backup Cron Job"
+    echo "$MYSQL_BACKUP_SCHEDULE root /app/backup >> /var/log/cron.log 2>&1" > /etc/cron.d/mysql-to-s3
+fi

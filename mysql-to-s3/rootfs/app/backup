@@ -1,0 +1,64 @@
+#!/bin/bash
+
+cleanup() {
+
+    echo "Maximum age of $MYSQL_BACKUP_MAX_AGE days set. Removing older files.."
+    
+    s3cmd ls s3://$AWS_S3_BUCKET/$AWS_S3_PATH/ | while read -r line;
+    do
+        
+        creationDate=`echo $line|awk {'print $1" "$2'}`
+        creationDate=`date -d"$creationDate" +%s`
+        olderThan=`date -d"-$MYSQL_BACKUP_MAX_AGE days" +%s`
+
+        if [[ $creationDate -lt $olderThan ]]; then
+            fileName=`echo $line|awk {'print $4'}`
+            if [[ $fileName != "" ]]; then
+                echo "Removing file $fileName"
+                s3cmd del "$fileName"
+            fi
+        fi
+
+    done
+
+    echo "Removal Completed"
+
+}
+
+backup() {
+
+    echo "Creating backup of database [$MYSQL_DATABASE] on server $MYSQL_HOST"
+
+    BACKUP_DATE=$(date +"%Y-%m-%d")
+    BACKUP_PATH="s3://$AWS_S3_BUCKET/$AWS_S3_PATH/$MYSQL_DATABASE-$BACKUP_DATE.sql.gz"
+
+    /usr/bin/mysqldump --user=$MYSQL_USER --password=$MYSQL_PASSWORD --host=$MYSQL_HOST $MYSQL_DATABASE \
+        | /bin/gzip | /usr/bin/s3cmd -rr put - "$BACKUP_PATH" >/dev/null 2>&1
+
+    echo "Backup completed and stored at $BACKUP_PATH"
+
+}
+
+# MYSQL VARIABLES
+if [ -z "$MYSQL_USER" ]; then echo "Error: MYSQL_USER is not set"; echo "Finshed: Failed"; exit 1; fi
+if [ -z "$MYSQL_PASSWORD" ]; then echo "Error: MYSQL_PASSWORD is not set"; echo "Finshed: Failed"; exit 1; fi
+if [ -z "$MYSQL_DATABASE" ]; then echo "Error: MYSQL_DATABASE is not set"; echo "Finshed: Failed"; exit 1; fi
+if [ -z "$MYSQL_HOST" ]; then echo "Error: MYSQL_HOST is not set"; echo "Finshed: Failed"; exit 1; fi
+
+# AWS CREDENTIALS
+if [ -z "$AWS_ACCESS_KEY" ]; then echo "Error: AWS_ACCESS_KEY is not set"; echo "Finshed: Failed"; exit 1; fi
+if [ -z "$AWS_SECRET_KEY" ]; then echo "Error: AWS_SECRET_KEY is not set"; echo "Finshed: Failed"; exit 1; fi
+
+# AWS S3 VARIABLES
+if [ -z "$AWS_S3_BUCKET" ]; then echo "Error: AWS_S3_BUCKET is not set"; echo "Finshed: Failed"; exit 1; fi
+if [ -z "$AWS_S3_PATH" ]; then echo "Error: AWS_S3_PATH is not set"; echo "Finshed: Failed"; exit 1; fi
+
+# Remove slashed from start & end of path
+AWS_S3_PATH=$(echo $AWS_S3_PATH | sed 's!^/\|/$!!g')
+
+# REQUIRES CLEANUP ?
+if [ -n "$MYSQL_BACKUP_MAX_AGE" ]; then cleanup; fi
+
+backup
+
+echo "Finished: Success"
