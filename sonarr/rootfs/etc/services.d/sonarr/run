@@ -1,0 +1,15 @@
+#!/usr/bin/with-contenv bash
+
+# default config
+if [ ! -f /app/config/config.xml ]; then
+	cp /defaults/config.xml /app/config/config.xml
+    chown nzbdrone:nzbdrone /app/config/config.xml
+fi
+
+# cleanup pid if it exists
+[[ -e /app/config/nzbdrone.pid ]] && rm -rf /app/config/nzbdrone.pid
+
+umask 022
+
+cd /opt/NzbDrone || exit
+exec s6-setuidgid nzbdrone mono --debug NzbDrone.exe -nobrowser -data=/app/config
