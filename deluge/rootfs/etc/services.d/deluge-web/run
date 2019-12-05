@@ -1,0 +1,9 @@
+#!/usr/bin/with-contenv sh
+
+if [ ! -f /app/config/web.conf ]; then
+	cp /defaults/web.conf /app/config/web.conf
+fi
+
+umask "${DELUGE_UMASK:-022}"
+
+exec s6-setuidgid deluge /usr/bin/deluge-web -c /app/config --loglevel=info

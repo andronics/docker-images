@@ -1,0 +1,9 @@
+#!/usr/bin/with-contenv sh
+
+if [ ! -f /app/config/core.conf ]; then
+	cp /defaults/core.conf /app/config/core.conf
+fi
+
+umask "${DELUGE_UMASK:-022}"
+
+exec s6-setuidgid deluge /usr/bin/deluged -c /app/config -d --loglevel=info -l /app/config/deluged.log
