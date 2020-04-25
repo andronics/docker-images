@@ -1,16 +1,18 @@
-FROM andronics/alpine:edge
+FROM andronics/ubuntu:bionic
 
 LABEL author="andronics"
 
+ARG DEBIAN_FRONTEND="noninteractive"
 ENV PYTHON_EGG_CACHE="/app/config/plugins/.python-eggs"
 
-RUN apk add --no-cache --virtual=build-dependencies g++ gcc libffi-dev openssl-dev py2-pip python2-dev && \
-    apk add --no-cache ca-certificates curl libressl2.6-libssl openssl p7zip unrar unzip && \
- 	apk add --no-cache --repository http://nl.alpinelinux.org/alpine/edge/testing deluge && \
- 	pip install --no-cache-dir -U incremental pip && \
-	pip install --no-cache-dir -U crypto mako markupsafe pyopenssl service_identity six twisted zope.interface && \
-	apk del --purge build-dependencies && \
-	rm -rf /root/.cache && \
-	adduser -D -s /bin/false deluge
+RUN apt-get update && \
+	apt-get install -y gnupg && \
+	apt-key adv --keyserver keyserver.ubuntu.com --recv-keys C5E6A5ED249AD24C && \
+	echo "deb http://ppa.launchpad.net/deluge-team/stable/ubuntu bionic main" >> /etc/apt/sources.list.d/deluge.list && \
+	echo "deb-src http://ppa.launchpad.net/deluge-team/stable/ubuntu bionic main" >> /etc/apt/sources.list.d/deluge.list && \
+	apt-get update && \
+	apt-get install -y deluged deluge-console deluge-web p7zip-full unrar unzip && \
+	rm -rf /root/.cache /tmp/* /var/lib/apt/lists/* /var/tmp/* && \
+	adduser --disabled-password --gecos "" deluge
 
 COPY rootfs/ /
